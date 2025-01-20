@@ -106,8 +106,7 @@ int main()
 			break;
 		}
 	}
-	//새롭게 배운 점: 함수의 오버로딩에서 add(int a,int b)와 add(float a,float b)가 있을 때 
-	//add(1.2,3)이렇게 넣으면 float으로 호출이 된다!!!
+	//새롭게 배운 점: 함수의 오버로딩에서 add(int a,int b)와 add(float a,float b)가 있을 때 add(1.2,3)이렇게 넣으면 float으로 호출이 된다!!!
 
 	return 0;
 
