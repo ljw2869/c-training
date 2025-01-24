@@ -5,37 +5,39 @@
 + 처음 클래스의 설정을 제한해 줄 수 있는 역할을 함
 + 클래스의 생성자 예시 코드
 
+```cpp
     class Time
     {
-    public:
-        int hour;//0~23
-        int minute;//0~59
+        public:
+            int hour;//0~23
+            int minute;//0~59
 
-        // Time()
-        // {
-        //     hour=0;
-        //     minute=0;
-        // }
-        //위의 긴 코드를 디폴트 매개변수를 이용해서 간결화
-        Time(int h = 0, int m = 0) //이게 생성자임
-        {
-            hour=h;
-            minute=m;
-        }
+            // Time()
+            // {
+            //     hour=0;
+            //     minute=0;
+            // }
+            //위의 긴 코드를 디폴트 매개변수를 이용해서 간결화
+            Time(int h = 0, int m = 0) //이게 생성자임
+            {
+                hour=h;
+                minute=m;
+            }
 
-        void print()
-        {
-            cout<<hour<<":"<<minute<<endl;
-        }
+            void print()
+            {
+                cout<<hour<<":"<<minute<<endl;
+            }
     };
+```
 
 + 위는 생성자를 함수 안에 삽입하는 형태로 만들었다면 다음은 멤버 초기화 리스트 형태로 더 간결하게 만들 수 있는 예시이다.
-
+```cpp
     //{}안에서 삽입하여 초기화하는 것을 ":"로 초기화 리스트를 사용하여 
     Time(int h = 0 ,int m = 0):hour{h},minute{m} //minute(m)으로 작성해도 되지만 옛날 방식
     {
     }
-
+```
 + 생성자는 객체가 생성되는 시점에서 자동으로 호출되는 멤버함수
 + 클래스 이름과 동일한 멤버 함수
 

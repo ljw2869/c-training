@@ -38,14 +38,14 @@
     **이때 헤더 파일을 중복으로 include를 하면 컴파일 오류가 발생하게 된다.**
 
     * 중복 include문제는 매크로로 해결
-
+    ```cpp
         #ifndef CIRCLE_H
         #define CIRCLE_H
 
         //클래스 선언부
 
         #endif
-    
+    ```
     **다음과 같이 circle.h파일을 구성하면 여러번 include해도 문제가 없음!!**
 
 
