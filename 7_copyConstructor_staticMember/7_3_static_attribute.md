@@ -85,7 +85,7 @@ int main(){
     - static 멤버는 클래스마다 오직 한 개만 생성되기 때문
         > lee.addShared(200); == Person::addShared(200);
     - non-static 멤버는 클래스 이름으로 접근 불가
-        > Person::money=100; 
+        > Person::money=100;  (X)
     ```cpp
     class Person{
         public:
