@@ -175,12 +175,13 @@
     ```
 
     * 다중 상속의 문제점: 기본 클래스 멤버의 중복 상속
-        > baseIO: <br> public: <br>int mode;
-        >>* In:public BaseIO public: int readPos 
-        * Out:public BaseIO public: int writePos
+        > baseIO: { public: int mode; }
+        >>+ In: public BaseIO { public: int readPos; }
+        >>+ Out:public BaseIO { public: int writePos; }
         >>> class InOut: public In, public Out{
             public: bool safe;
         }
+        
         위의 2가지 클래스 In과 Out을 다중 상속
 
         **이때, InOut객체를 만들고 mode를 접근하려 할 때 서로 다른 mode공간이 생겨버려 어디로 접근해야 할 지 모르는 문제가 생기게 된다.**
