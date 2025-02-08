@@ -501,9 +501,15 @@ int main()
     - 상향 형변환 시, 파생 클래스의 소멸자를 선언해 놓고 보면 기본 클래스의 소멸자만 호출되고 파생 클래스의 소멸자는 호출이 되지 않아 메모리 누수의 문제가 생길 수 있다.
 
     - 해결책: 부모 클래스의 소멸자 앞에 virtual 키워드를 붙여 놓으면 먼저 파생 클래스의 소멸자를 실행시키고, 그 다음 기본 클래스의 소멸자를 실행시킨다. 
+        * 소멸자 호출 시 동적 바인딩 발생
+        * 만약 base포인터에서 derived객체를 업캐스팅했을 때 base포인터를 메모리 해제하면 순서가
+            > 1. ~Base()소멸자 호출 
+            > 2. ~Derived소멸자 실행
+            > 3. ~Base()소멸자 실행
+        * 마찬가지로 만약 파생 클래스 포인터가 파생클래스 객체를 가리키다가 메모리를 해제해도, 기본클래스의 소멸자 호출->파생클래스 소멸자 호출 순서로 진행
     
     코드 예시
-    
+
     ```cpp
     #include<iostream>
     #include<cstring>
@@ -553,6 +559,7 @@ int main()
         return 0;
     }
     ```
+
 
 + 오버라이딩의 목적- 파생 클래스에서 구현할 함수 인터페이스(파생 클래스의 다형성)
     - 다형성의 실현
@@ -626,3 +633,68 @@ int main()
 }
 ```
 위와 같이 범위지정 연산자 ::를 통해 virtual로 무시되는 것을 강제로 호출시킬 수 있다.
+
++ 업캐스팅 강조
+    **c++ 컴파일러는 포인터를 이용한 연산의 가능성 여부를 판단할 때, 포인터의 자료형을 기준으로 판단함**
+
+    - 실제 가리키는 객체의 자료형을 기준으로 판단하지 않음(업캐스팅으로 가리킬 수 있지만, 멤버에 접근하는 범위랑은 문제가 다름)
+    - 포인터 형에 해당하는 클래스의 멤버에만 접근이 가능
+    - 다운 캐스팅 시에는 형 변환을 해주어야 컴파일 오류가 나지 않음
+    ```cpp
+    class First{
+        public:
+            void FirstFunc(){cout<<"FirstFunc"<<endl;}
+    };
+    class Second : public First{
+        public:
+            void SecondFunc(){cout<<"SecondFunc"<<endl;}
+    };
+    class Third : public Second{
+        public:
+            void ThirdFunc(){cout<<"ThirdFunc"<<endl;}
+    };
+    
+    int main(){
+        Third *tpr=new Third();
+        Second *spr=new Second();
+        First *fpr=new First();
+
+        tpr->FirstFunc();
+        tpr->SecondFunc();
+        tpr->ThirdFunc();
+        //위의 3개의 함수 실행 모두 가능
+
+        spr->FirstFunc();
+        spr->SecondFunc();
+        //위의 두 코드만 가능
+        //spr->ThirdFunc(); 큰 개념의 포인터에서 객체를 파생클래스를 가리킬 수 있지만 포인터 형에 해당하는 멤버에만 접근이 가능
+
+        fpr->FirstFunc();
+        //위의 코드만 가능
+        //fpr->SecondFunc();
+        //fpr->ThirdFunc();
+        //기본클래스의 범위는 공간이 더 좁기 때문에 파생클래스의 멤버까지 접근 불가능
+        return 0;
+    }
+    ```
+    ```cpp
+    class Base{
+        public: 
+            void BaseFunc(){cout<<"Base Function"<<endl;}
+    };
+    class Derived:public Base{
+        public:
+            void DerivedFunc(){cout<<"Derived Function"<<endl;}
+    };
+
+    int main(){
+        Base *bpr=new Derived()//컴파일 OK
+        // bpr->DerivedFunc(); //컴파일 error
+
+        //Derived *dpr=bpr; //컴파일 error
+        //다운캐스팅이므로 형변환해주어야 함
+
+        Derived *dptr=new Derived();
+        Base *bptr=dptr;//이건 업캐스팅이라 자동으로 컴파일 OK
+    }
+    ```
