@@ -238,6 +238,8 @@
         fptr->MyFunc();
         sptr->MyFunc();
         tptr->MyFunc();
+        //fptr->d; //불가능: 겹치는 부분의 영역만 접근이 가능함
+
         delete tptr;
         return 0;
     }
@@ -259,7 +261,368 @@
     gp->f();
     //위의 3가지 f()함수 호출은 모두 grandDerived의 f()함수를 호출한다.
     ```
+--------------------------------------------------
+
+9.6 다형성과 가상함수 2
+============================
++ 순수 가상함수(pure virtual function)
+    - 베이스 클래스에서는 어떤 동작도 정의되지 않고 함수의 선언만을 하는 가상 함수
+    - 순수 가상함수를 선언하고 파생클래스에서 이 가상함수를 중복 정의하지 않으면 **컴파일 시 에러 발생**
+    - 하나 이상의 멤버가 순수 가상 함수인 클래스를 **추상클래스(abstract class)**라고 함
+        * 완성된 클래스가 아니기 때문에 객체화 되지 않는 클래스
     
+    - 기본 클래스의 가상 함수 목적:
+        * 파생 클래스에서 재정의할 함수를 알려주는 역할
+        * 실행할 코드를 작성할 목적이 아님
+
+        ```cpp 
+        class Shape{
+            public:
+                virtual void draw()=0;// 순수 가상함수 선언 형식
+        };
+        ```
+
++ 추상 클래스의 목적
+    - 추상클래스는 인스턴스를 생성할 목적으로 만들어진게 아님
+    - 상속에서 기본 클래스의 역할 위함
+        * 순수 가상 함수를 통해 **파생 클래스에서 구현할 함수의 형태(원형)을 보여주는 인터페이스 역할**
+        * 추상 클래스의 모든 멤버함수를 순수 가상함수로 선언할 필요 없음
+
++ 추상 클래스: 최소한 하나의 순수 가상함수를 가진 클래스
+    ```cpp
+    class Shape{
+        Shape *next;
+        public:
+            void paint(){
+                draw();
+            }
+            virtual void draw()=0;//순수 가상함수
+    };
+    void Shape::paint(){
+        draw();//순수 가상 함수라도 호출은 할 수 있다.
+    }
+    ```
+    
+    - 온전한 클래스가 아니어서 객체 생성 불가능
+    - 추상 클래스의 포인터는 선언 가능
+
+    예시 코드
+    ```cpp
+    #include<iostream>
+    using namespace std;
+
+    class Date{
+        protected:
+            int year, month, day;
+        public:
+            Date(int y, int m,int d){ year=y; month=m; day=d;}
+        virtual void print()=0;//pure virtual function
+    };
+    class Adate:public Date{
+        public:
+            Adate(int y, int m, int d):Date(y,m,d){}
+            void print(){cout<<year<<"/"<<month<<"/"<<day<<endl;}
+    };
+
+    class Bdate:public Date{
+        public:
+            Bdate(int y, int m, int d):Date(y,m,d){}
+            void print();
+    };
+
+    void Bdate::print(){
+        static const char *mn[]={
+            "Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"};
+        cout<<mn[month-1]<<" "<<day<<" "<<year<<endl;
+    };
+
+    int main()
+    {
+        Adate ad(2010,3,15);
+        Bdate bd(2010,3,15);
+        Date &r1=ad, &r2=bd;
+        r1.print();
+        r2.print();
+
+        return 0;
+    }
+    ```
+
++ 추상클래스의 상속과 구현
+    - 추상 클래스를 단순 상속하면 자동 추상 클래스
+    - 추상 클래스를 상속 받아 순수 가상 함수를 오버라이딩
+        * 이렇게 되면 파생 클래스는 추상클래스가 아님
+    ```cpp
+    class Shape{
+        public:
+            virtual void draw()=0;
+    };
+    class Circle: public Shape{
+        public:
+            string toString(){return "Cricle 객체";}
+    };
+    int main(){
+        Shape shape;//객체 생성 오류
+        Circle waffle;//객체 생성 오류
+        return 0;
+    }
+    ```
+    근데 만약 위의 코드에서 Circle 안에 virtual void draw를 정의해주었다면 그때부터 Circle은 추상클래스가 아니고 순수 가상함수를 오버라이딩 하게 되어서 main함수의 Circle객체를 만드는 것에는 문제가 없어진다.
+
+    추상클래스 구현 예시
+
+    ```cpp
+    #include<iostream>
+    using namespace std;
+
+    class Calculator{
+        public:
+            virtual int add(int a, int b)=0;
+            virtual int subtract(int a, int b)=0;
+            virtual double average(int a[], int size)=0;
+    };
+
+    class GoodCalc:public Calculator{
+        public:
+            int add(int a,int b){return a+b;}
+            int subtract(int a,int b){return a-b;}
+            double average(int a[],int size){
+                double sum=0;
+                for(int i=0;i<size;i++){
+                    sum+=a[i];
+                }
+                return sum/size;
+            }
+    };
+
+    int main()
+    {
+        
+        int a[]={1,2,3,4,5};
+        Calculator *p=new GoodCalc();
+        cout<<p->add(2,3)<<endl;
+        cout<<p->subtract(2,3)<<endl;
+        cout<<p->average(a,5)<<endl;
+        //calculator는 추상클래스이고 각 순수가상함수들은 virtual을 달았기 때문에 포인터가 가리키는 goodcalc의 함수를 호출한다.
+        return 0;
+    }
+    ```
+
++ 추상클래스를 상속 받는 파생 클래스 구현 연습 코드
+```cpp
+#include<iostream>
+using namespace std;
+
+class Calculator{
+    void input(){
+        cout<<"두 정수를 입력하세요>> ";
+        cin>>a>>b;
+    }
+    protected:
+        int a,b;
+        virtual int calc(int a,int b)=0;
+    public:
+        void run(){
+            input();
+            cout<<"계산된 값은 "<<calc(a,b)<<"입니다."<<endl;
+        }
+};
+
+class Adder: public Calculator{
+    protected:
+        virtual int calc(int a,int b){ //virtual 키워드 생략 가능
+            return a+b;
+        }
+};
+
+class Subtractor: public Calculator{
+    protected:
+        virtual int calc(int a,int b){ //여기서 virtual 키워드 생략 가능
+            return a-b;
+        }
+};
 
 
+int main()
+{
+    Adder adder;
+    Subtractor sub;
+    adder.run();
+    sub.run();
+    
+    return 0;
+}
 
+```
+> 위의 코드를 보면, 처음에 protected로 calc이 쌓여져 있어서 main에서 어떻게 실행이 되었는지 의문이었는데, main에서는 run(public)을 호출하고 있고, 그 안에서 calc를 호출하고 있기 때문에, calculator클래스의 멤버함수인 protected멤버에 접근 가능
+> 위의 코드에서 주목해보아야 할 점은 **같은 calc함수를 호출시킴에도 불구하고, 객체에 따라 다른 함수가 호출이 되어 실행**이 된다는 점이 중요!
+
++ 다형성(polymorphism)
+    - 객체들의 타입이 다르면 똑같은 메세지가 전달되더라도 서로 다른 동작을 하는 것 (= 실행시간 다형성)
+    - 다형성은 객체 지향 기법에서 하나의 코드로 다양한 타입의 객체를 처리하는 중요한 기술
+
+    ```cpp
+    #include<iostream>
+    using namespace std;
+
+    class Shape{
+        protected:
+            int x,y;
+        public:
+            Shape(int x,int y):x{x},y{y}{}
+            virtual void draw(){
+                cout<<"Shape Draw"<<endl;
+            }
+    };
+
+    class Rect:public Shape{
+        private:
+            int width,height;
+        public:
+            Rect(int x,int y,int w, int h):Shape(x,y),width{w},height{h}{}
+            void draw(){
+                cout<<"Rect Draw"<<endl;
+            }
+        };
+
+    int main()
+    {
+        Shape*ps=new Rect(0,0,100,100);//OK
+        ps->draw();
+        delete ps;
+        return 0;
+    }
+    ```
+    위의 코드를 보면 shape와 rect 클래스 모두 draw 함수 정의되어 있어도 포인터가 가리키는 객체에 따라 함수 발현(호출)이 달라지는 것을 확인할 수 있다.
+
+    + 참조자도 포인터와 마찬가지로 모든 것이 동일하게 적용. 부모클래스의 참조자로 자식 클래스를 가리킬 수 있고, 가상 함수의 동작도 동일하다.
+
++ 가상 소멸자(virtual destructor)
+    - 상향 형변환 시, 파생 클래스의 소멸자를 선언해 놓고 보면 기본 클래스의 소멸자만 호출되고 파생 클래스의 소멸자는 호출이 되지 않아 메모리 누수의 문제가 생길 수 있다.
+
+    - 해결책: 부모 클래스의 소멸자 앞에 virtual 키워드를 붙여 놓으면 먼저 파생 클래스의 소멸자를 실행시키고, 그 다음 기본 클래스의 소멸자를 실행시킨다. 
+    
+    코드 예시
+    
+    ```cpp
+    #include<iostream>
+    #include<cstring>
+    using namespace std;
+
+    class AAA{
+        char *str1;
+        public:
+            AAA(const char* _str1){
+                str1=new char[strlen(_str1)+1];
+                strcpy(str1,_str1);
+            }
+            virtual ~AAA(){
+                cout<<"~AAA 소멸자"<<endl;
+                delete []str1;
+            }
+            virtual void ShowString(){
+                cout<<str1<<" ";
+            }
+    };
+    class BBB:public AAA{
+        char *str2;
+        public:
+            BBB(const char*_str1,const char* _str2):AAA(_str1){
+                str2=new char[strlen(_str2)+1];
+                strcpy(str2,_str2);
+            }
+            ~BBB(){
+                cout<<"~BBB 소멸자"<<endl;
+                delete []str2;
+            }
+            virtual void ShowString(){
+                AAA::ShowString(); //범위 지정 연산자를 통해 부모 클래스의 함수 호출
+                cout<<str2<<endl;
+            }
+    };
+
+    int main()
+    {
+        AAA *a=new BBB("Good","Morning");
+        BBB *b=new BBB("Hello","evening");
+        a->ShowString();
+        b->ShowString();
+        cout<<"---------객체 소멸 직전----------"<<endl;
+        delete a;
+        delete b;
+        return 0;
+    }
+    ```
+
++ 오버라이딩의 목적- 파생 클래스에서 구현할 함수 인터페이스(파생 클래스의 다형성)
+    - 다형성의 실현
+        * draw() 가상 함수를 가진 기본 클래스 Shape
+        * 오버라이딩을 통해 Circle, Rect, Line클래스에서 자신만의 draw()를 구현
+
+        ```cpp
+        class Shape{
+            protected:
+                virtual void draw(){}//가상함수 선언, 파생클래스에서 재정의할 함수에 대한 인터페이스 역할
+        };
+
+        class Circle: public Shape{
+            protected:
+                virtual void draw(){//Circle 그리기
+                }
+        };
+        class Rect: public Shape{
+            protected:
+                virtual void draw(){
+                    //원하는 코드
+                }
+        };
+        void paint(Shape *p){
+            p->draw();
+        }
+        int main(){
+            paint(new Circle());
+            paint(new Rect());
+            return 0;
+        }
+        ```
+        위와 같이 원하는 객체에 따라 자신 각자 구현하고 싶은 함수를 실행할 수 있다.
+
+        **즉, shape는 상속을 위한 기본 클래스로의 역할이고, draw()로 파생 클래스의 인터페이스를 보여주고, 객체를 생성할 목적은 아님, 그래서 파생클래스에서 draw()를 재정의해야 함**
++ 바인딩(binding)
+    - 정적 바인딩: 컴파일 시 호출되는 함수를 결정
+    - 동적 바인딩: 실행 시 호출되는 함수를 결정
+        * 파생 클래스에 대해
+        * 객체 내에 오버라이딩한 파생 클래스의 함수를 찾아 실행
+        * 실행 중에 이루어짐
+        * 실행 시간 바인딩, 런타임 바인딩, 늦은 바인딩이라고도 불림
+
++ 범위 지정 연산자(::)를 이용한 기본 클래스의 가상 함수 호출
+```cpp
+#include<iostream>
+using namespace std;
+
+class Shape{
+    public:
+        virtual void draw(){
+            cout<<"--shape--"<<endl;
+        }
+};
+class Rect:public Shape{
+    public:
+        virtual void draw(){
+            Shape::draw();
+            cout<<"--rect--"<<endl;
+        }
+};
+
+int main()
+{
+    Rect r;
+    Shape *p=&r;
+
+    p->draw();//동적 바인딩을 포함하는 호출
+    p->Shape::draw();//정적 바인딩
+    return 0;
+}
+```
+위와 같이 범위지정 연산자 ::를 통해 virtual로 무시되는 것을 강제로 호출시킬 수 있다.
